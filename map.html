@@ -296,15 +296,17 @@
             align-items: center;
             background-color: #EDF3FB;
             border: 1px solid #C9DAF2;
-            padding: 8px 16px;
+            padding: 8px 16px 8px 8px;
             border-radius: 8px;
+            cursor: default;
+            margin: 8px 24px 24px 24px;
+            width: 208px;
         }
 
         .choices .choices__list .empty-user-list i {
-            margin-right: 8px;
-            margin-left: 0;
+            margin: 4px 12px 44px 4px;
             color: #4D85D5;
-            font-size: 18px;
+            font-size: 16px;
         }
 
         .choices .choices__list .empty-user-list a {
@@ -316,12 +318,15 @@
         }
 
         .choices__item.choices__item--choice.is-selected {
-            background: #F0F0F4;
             font-weight: 600;
         }
 
         .choices__item.choices__item--choice.is-highlighted {
-            background: #fcfcfc;
+            background: #F0F0F4;
+        }
+
+        .choices__item.choices__item--choice:hover {
+            background: #F0F0F4;
         }
 
         .choices__item.choices__item--choice.has-no-results {
@@ -337,13 +342,13 @@
             font-size: 24px;
             border: 1px solid;
             border-radius: 50%;
-            margin: 8px;
+            margin: 8px 16px 8px 16px;
             color: #212121;
             overflow: hidden;
         }
 
         .choices .choices__list.choices__list--single {
-            padding: 2px 10px 2px 10px;
+            padding: 5px 10px 2px 10px;
         }
 
         .choices .choices__list.choices__list--single .user .email {
@@ -351,6 +356,7 @@
             width: 185px;
             text-overflow: ellipsis;
             overflow: hidden;
+            text-wrap: nowrap;
         }
 
         .choices .choices__list.choices__list--single .user .avatar {
@@ -369,7 +375,7 @@
         .choices__heading {
             font-weight: 600;
             font-size: 11px;
-            padding: 0 15px;
+            padding: 0px;
             border-bottom: none;
             color: #AEAEB5;
         }
@@ -404,9 +410,7 @@
             max-width: 190px;
             width: 190px;
             margin-left: 15px;
-            font-weight: bold;
-            border-bottom: 1px solid #e5e5ea;
-            padding-bottom: 12px;
+            padding: 10px 0px 10px 0px;
         }
 
         .choices .choices__list .user .avatar .image {
@@ -423,7 +427,6 @@
 
         .choices .choices__list .user .email {
             color: #5A5D63;
-            margin: 2px 0 4px;
             padding-right: 4px;
         }
 
@@ -437,18 +440,24 @@
         }
 
         .choices .choices__list .user .check {
-            font-size: 18px;
+            font-size: 16px;
             position: relative;
             right: 4px;
+            height: 16px;
+            width: 16px;
         }
 
         .choices[data-type*=select-one] .choices__input {
-            width: 90%;
-            padding: 8px;
+            width: 208px;
+            padding: 8px 8px 8px 20px;
             border: 1px solid #F0F0F4;
             background-color: #FAFAFC;
+            background-image: url("https://assets.softr-files.com/assets/images/magnifying-glass-tilted-left.svg");
+            background-size: 16px 16px;
+            background-repeat: no-repeat;
+            background-position: 8px 10px;
             border-radius: 8px;
-            margin: 16px auto;
+            margin: 16px 24px 8px 24px;
             text-indent: 8px;
         }
 
@@ -464,12 +473,33 @@
             background-color: #F0F0F4;
         }
 
+        .choices__group {
+            margin: 0px 24px 0px 24px;
+        }
+
         .choices__list--dropdown .choices__item,
         .choices__list[aria-expanded] .choices__item {
             font-size: 13px;
-            padding: 6px 0;
+            padding: 0px;
             border-radius: 4px;
-            margin: 7px;
+            margin: 8px;
+        }
+
+        .ph-check.check.non-logged-in {
+            margin-top: 6px;
+        }
+
+        .user .ph-check.check {
+            top: 5px;
+            position: absolute!important;
+            margin-right: 10px;
+        }
+
+        .non-logged-in-separator {
+            width: 208px;
+            height: 1px;
+            background: #E5E5EA;
+            margin: 8px 24px 16px 24px;
         }
 
         .close {
@@ -669,6 +699,7 @@
                                 <i class="ph ph-info"></i>
                                 <div class="message">
                                     Your application doesn't have registered users.
+                                    <br>
                                     <a href="https://docs.softr.io/user-management/pxnkp9H3qyEVMF6XUceqnj/add-users-to-a-softr-app/kBJGPeH635j7HDW4NYoDDs"
                                     target="_blank">Learn more.</a>
                                 </div>
@@ -703,14 +734,11 @@
 
             const choices = new Choices(selectElement, {
                 searchEnabled: true,
-                searchFields: ['customProperties.name', 'customProperties.email'],
                 shouldSort: false,
-                searchChoices: function(choice, searchValue) {
-                    return choice.value.startsWith(searchValue);
-                },
                 allowHTML: true,
                 itemSelectText: '',
                 renderChoiceLimit: -1,
+                searchResultLimit: 100,
                 choices: applicationUsers,
                 renderSelectedChoices: 'always',
                 searchPlaceholderValue: 'Search users',
@@ -731,9 +759,17 @@
                         ...template,
                         choice: (event, data) => {
                             const {classNames} = event;
+                            if(!data.selected && choices?.getValue()?.value === data.label) {
+                                data.selected = true;
+                            }
+
                             const {imageUrl, icon, name, email, role} = data.customProperties;
                             return template(
-                                `
+                                email === 'No-users' ?
+                                    noChoicesTemplate :
+                                     (email === 'separator' ? `<div class="non-logged-in-separator choices__group" data-group data-id="${data.id}" data-value="${data.value}" role="group"><div class="choices__heading"></div></div>` :
+
+                                        `
                                              <div class="${classNames.item} ${classNames.itemChoice} ${data.selected ? classNames.selectedState : ''}" data-select-text="${this.config.itemSelectText}" data-choice ${data.disabled ? 'data-choice-disabled aria-disabled="true"' : 'data-choice-selectable'} data-id="${data.id}" data-value="${data.value}" ${data.groupId > 0 ? 'role="treeitem"' : 'role="option"'}>
                                                 <div class="user">
                                                 ${icon ?
@@ -751,12 +787,12 @@
                                 }
                                                     ${
                                     data.selected
-                                        ? '<i class="ph ph-check check"></i>'
+                                        ? (icon ? '<i class="ph ph-check check"></i>' : '<i class="ph ph-check check non-logged-in"></i>')
                                         : ''
                                 }
                                                 </div>
                                               </div>
-                                    `, classNames, data);
+                                    `), classNames, data);
                         },
                         item: (event, data) => {
                             const {classNames} = event;
@@ -797,19 +833,18 @@
             });
 
             function reloadPreview() {
-
                 //setting device type to URL, that BE can get it and handle visibility checks
                 const urlParams = new URLSearchParams(window.location.search);
                 urlParams.set('device', localStorage.getItem('preview-screen-size'));
-                window.location.search = urlParams;
 
-
-                fetch('/studio/refresh', {method: 'POST'})
+                fetch('/studio/refresh' + window.location.search, {method: 'POST'})
                     .then(response => {
                         if (!response.ok) {
                             throw new Error("HTTP error " + response.status);
                         }
-                        location.reload();
+
+                        // will reload window
+                        window.location.search = urlParams;
                     })
                     .catch(error => {
                         console.error('API request error:', error);
@@ -924,6 +959,12 @@
                         `)
             })
 
+            const userSearchInputHanlder = function(event) {
+                if (!event.target.value) {
+                    choices.setChoices(applicationUsers, 'value', 'label', true);
+                }
+            }
+
             function loadApplicationUsers() {
                 let url = "/studio/users";
                 fetch(url).then(function (response) {
@@ -948,7 +989,8 @@
                             email,
                             role,
                             imageUrl,
-                            icon: "ph-user"
+                            icon: "ph-user",
+                            id
                         }
                     }));
 
@@ -971,25 +1013,111 @@
                             ]
                         },
                         {
-                            label: 'USERS',
-                            id: 'users',
-                            choices: result
-                        }
+                            label: '',
+                            id: '',
+                            choices: [
+                                {
+                                    value: 'separator',
+                                    id: 'anonymous',
+                                    customProperties: {
+                                        name: '',
+                                        email: 'separator',
+                                        role: '',
+                                        image: '',
+                                        icon: ''
+                                    }
+                                }
+                            ]
+                        },
+                        jsonData.length ?
+                            {
+                                label: 'USERS',
+                                id: 'users',
+                                choices: result
+
+                            } :
+                            {
+                                label: 'USERS',
+                                id: 'users',
+                                selectable: false,
+                                choices: [
+                                    {
+                                        value: 'No-users',
+                                        id: 'anonymous',
+                                        customProperties: {
+                                            name: '',
+                                            email: 'No-users',
+                                            role: '',
+                                            image: '',
+                                            icon: ''
+                                        }
+                                    }
+                                ]
+                            }
                     ];
 
                     choices.setChoices(applicationUsers);
 
-                    const [nonLoggedInUser, otherUsers] = applicationUsers;
-                    const selectedUserId = otherUsers.choices.find((user) => user.isLoggedInUser)?.id;
+                    selectElement.addEventListener(
+                        'showDropdown', () => {
+                            // by default first element or last hovered element is always highlighted
+                            // we need to remove that highlight
+                            document.querySelectorAll('.choices__list > .is-highlighted').forEach(item => item.classList.remove('is-highlighted'));
+                            // this event listener is needed for cases when user remove search text with cmd/ctrl+A
+                            // in that case search event is not triggered
+                            document.querySelector('.choices__list .choices__input').addEventListener('input', userSearchInputHanlder);
+                        });
 
-                    if (selectedUserId) {
-                        const [nonLoggedInUser, otherUsers = {choices: []}] = applicationUsers;
-                        const selectedUser = otherUsers.choices.find(user => user.id === selectedUserId);
+                    selectElement.addEventListener(
+                        'hideDropdown', (event) => {
+                            document.querySelector('.choices__list .choices__input').removeEventListener('input', userSearchInputHanlder);
+                            if (choices.input.value) {
+                                choices.clearInput();
+                                choices.clearChoices();
+                                choices.setChoices(applicationUsers, 'value', 'label', true);
+                            }
+                        });
 
-                        choices.setChoiceByValue(selectedUser.value);
-                    } else {
-                        choices.setChoiceByValue(nonLoggedInUser.choices[0].value);
+                    selectElement.addEventListener(
+                        'search',
+                        function(event) {
+                            if (event.detail.value) {
+                                const filteredUsers = [applicationUsers[0],
+                                    {
+                                        label: 'USERS',
+                                        choices: applicationUsers[2].choices.filter((choice) =>
+                                            choice.value.toLowerCase().includes(event.detail.value.toLowerCase()) ||
+                                            choice.customProperties?.name?.toLowerCase().includes(event.detail.value.toLowerCase())
+                                        )
+                                    }];
+                                choices.setChoices(filteredUsers, 'value', 'label', true);
+                            } else {
+                                choices.setChoices(applicationUsers, 'value', 'label', true);
+                            }
+                        },
+                        false,
+                    );
+
+                    function setSelectedUser() {
+                        const [nonLoggedInUser, separator, otherUsers] = applicationUsers;
+                        const selectedUserId = choices.getValue()?.customProperties?.id;
+
+                        if (selectedUserId) {
+                            const [_, otherUsers = {choices: []}] = applicationUsers;
+                            const selectedUser = otherUsers.choices.find(user => user.customProperties?.id === selectedUserId);
+
+                            choices.setChoiceByValue(selectedUser.value);
+                        } else {
+                            const loggedInUser = otherUsers.choices.find((user) => user.isLoggedInUser);
+                            if (loggedInUser) {
+                                choices.setChoiceByValue(loggedInUser.value);
+                            } else {
+                                choices.setChoiceByValue(nonLoggedInUser.choices[0].value);
+                            }
+                        }
                     }
+
+                    setSelectedUser();
 
                 }).catch(function (err) {
                     console.log("An error occurred while fetching the API data.", err);
@@ -998,7 +1126,7 @@
             }
 
             function onUserSelect() {
-                const [nonLoggedInUser, otherUsers = {choices: []}] = applicationUsers;
+                const [nonLoggedInUser, separator, otherUsers = {choices: []}] = applicationUsers;
                 const selectedUser = otherUsers.choices.find(user => user.value === selectedUserEmail);
                 let userId = selectedUser?.id || 'anonymous';
 
@@ -1077,6 +1205,14 @@
 
 <body>
 
+<!-- Send user id to Appcues -->
+<script>
+    const studioUserId = '249a3a63-cf56-4436-b9bc-bcc4dca525ec';
+    if (studioUserId && Appcues.identify) {
+        Appcues.identify(studioUserId,{});
+    }
+</script>
+<!-- Send user id to Appcues -->
 
 <div class="fixed-top preview-header">
     <div class="update-banner" style="display: none">
@@ -1164,7 +1300,7 @@
 </div>
 
 <div class="iframe-container">
-    <iframe id="preview-iframe" class="full-screen-preview__iframe" src="https://goimam.preview.softr.app/map?t=1696727426197" allowfullscreen></iframe>
+    <iframe id="preview-iframe" class="full-screen-preview__iframe" src="https://goimam.preview.softr.app/map?t=1698455718411" allowfullscreen></iframe>
 </div>
 
 
